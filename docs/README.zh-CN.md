@@ -51,7 +51,7 @@ getCampaignStatus()  ──►  可领取？  ──否──►  退出 0（无
 ## 安装
 
 ```powershell
-git clone https://github.com/<your-username>/qoder-daily-claim.git
+git clone https://github.com/jalilahmad/qoder-daily-claim.git
 cd qoder-daily-claim
 
 # 注册每日计划任务

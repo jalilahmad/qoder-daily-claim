@@ -54,7 +54,7 @@ getCampaignStatus()  ──►  قابل دریافت؟  ──نه──►  خ
 ## نصب
 
 ```powershell
-git clone https://github.com/<your-username>/qoder-daily-claim.git
+git clone https://github.com/jalilahmad/qoder-daily-claim.git
 cd qoder-daily-claim
 
 # ثبت تسک زمان‌بندی‌شده‌ی روزانه
