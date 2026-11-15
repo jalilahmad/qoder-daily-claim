@@ -58,11 +58,15 @@ async function evalIn(send, sessionId, expression) {
   return r.result.result ? r.result.result.value : undefined;
 }
 
-async function findRenderer(send) {
-  const list = await targets(send);
-  const t = list.find((x) => x.type === "page" && (x.url || "").includes("renderer"));
-  if (!t) throw new Error("Qoder renderer page not found (is Qoder running with --remote-debugging-port?)");
-  return t;
+async function findRenderer(send, tries = 30, delayMs = 1000) {
+  // The DevTools endpoint can be up before the renderer page exists, so retry.
+  for (let i = 0; i < tries; i++) {
+    const list = await targets(send);
+    const t = list.find((x) => x.type === "page" && (x.url || "").includes("renderer"));
+    if (t) return t;
+    if (i < tries - 1) await new Promise((r) => setTimeout(r, delayMs));
+  }
+  throw new Error("Qoder renderer page not found (is Qoder running with --remote-debugging-port?)");
 }
 
 async function findCampaignFrame(send) {
