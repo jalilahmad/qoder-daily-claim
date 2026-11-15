@@ -1,0 +1,37 @@
+{
+  "name": "qoder-daily-claim",
+  "version": "1.0.0",
+  "description": "Automates Qoder's daily free-credit claim on Windows via the app's own DevTools bridge.",
+  "main": "src/qoder-claim.js",
+  "bin": {
+    "qoder-claim": "src/qoder-claim.js"
+  },
+  "scripts": {
+    "claim": "node src/qoder-claim.js",
+    "install-task": "powershell -ExecutionPolicy Bypass -File scripts/install-task.ps1",
+    "uninstall-task": "powershell -ExecutionPolicy Bypass -File scripts/install-task.ps1 -Uninstall"
+  },
+  "keywords": [
+    "qoder",
+    "credits",
+    "automation",
+    "electron",
+    "cdp",
+    "windows",
+    "scheduled-task"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "win32"
+  ],
+  "files": [
+    "src/",
+    "scripts/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ]
+}

@@ -1,0 +1,19 @@
+# Logs produced by the claim scripts
+claim-log.txt
+run-log.txt
+*.log
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
