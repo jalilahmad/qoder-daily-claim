@@ -19,27 +19,28 @@ Qoder 官方文档明确说明：每日奖励**必须手动领取**，没有公�
 
 ## 工作原理
 
-Qoder 是 Electron 应用，因此有两个正当的切入点：
+Qoder 是 Electron 应用，所以领取界面本身就是可驱动的网页内容：
 
-1. **应用自身的 IPC 桥。** 渲染进程暴露了 `window.qoderDesktop`，其中 `getCampaignStatus()`
-   会返回当前是否有可领取的奖励。
-2. **活动页面。** 领取界面是一个网页
-   （`https://openapi.qoder.sh/growth-page/activity-iframe`），以 `WebContentsView` 形式渲染，
-   在 CDP 中表现为一个 `iframe` target。
+1. **真实 UI 路径。** 脚本点击侧边栏底部的个人资料按钮，再点击弹出菜单中的 **Rewards center**。
+2. **活动页面。** 这会以 iframe 形式打开
+   `https://openapi.qoder.sh/growth-page/activity-iframe`，在 CDP 中表现为一个 `iframe` target。
+3. **领取。** 脚本在该 iframe 内找到 **「Claim 100 Credits Daily」** 卡片上处于可用状态的
+   **Claim** 按钮并点击，然后验证页面显示
+   *「Claimed successfully. Credits have been added.」*。
 
-脚本连接 Qoder 的 DevTools 端点，向应用查询是否有可领取项，打开活动界面，点击
-**「Claim 100 Credits Daily」**卡片自己的按钮，然后验证结果。整个过程运行在应用真实的登录会话中，
-**不会读取、存储或传输任何 token 或 cookie**。
+整个过程运行在应用真实的登录会话中，**不会读取、存储或传输任何 token 或 cookie**。
+
+> **为什么不用 IPC 捷径？** Qoder 通过 IPC 暴露了 `openCampaignSurface()`，本项目早期版本用的就是它。
+> 但那条路径会让页面永远卡在 *「Connecting to Qoder Desktop…」*，因为宿主桥只有在窗口从真实菜单打开时
+> 才会被接上。所以脚本改为驱动菜单，和人手动操作完全一致。
 
 ```
-getCampaignStatus()  ──►  可领取？  ──否──►  退出 0（无事可做）
-                              │是
-                              ▼
-                     openCampaignSurface()
-                              ▼
-                     找到每日卡片 → 点击 Claim
-                              ▼
-                     验证（状态 + 页面）→ 写日志
+个人资料按钮  ──►  「Rewards center」  ──►  活动 iframe
+                                              │
+                                              ▼
+                              找到每日卡片 → 点击 Claim
+                                              ▼
+                              验证「Claimed successfully」→ 写日志
 ```
 
 ## 环境要求
@@ -151,7 +152,8 @@ Qoder 没有带调试端口运行。请通过 `scripts/run-claim.ps1` 启动，�
 `node src/qoder-claim.js`。
 
 **`campaign surface never rendered`**
-活动页面加载失败。打开 Qoder 的用量面板，手动点一次礼物图标，确认你的网络能加载该页面。
+活动窗口没有打开。手动打开 Qoder，点击侧边栏底部的个人资料名称，选择 **Rewards center**，
+确认该窗口在你的网络下能正常加载。
 
 **`claim control not found`**
 Qoder 改了界面。请附上 `claim-log.txt` 的内容开一个 issue。

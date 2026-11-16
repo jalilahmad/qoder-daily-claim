@@ -21,28 +21,32 @@ perform yourself — it does not farm extra credits, create accounts, or bypass 
 
 ## How it works
 
-Qoder is an Electron app, which gives us two legitimate handles:
+Qoder is an Electron app, so the claim UI is web content we can drive properly:
 
-1. **Its own IPC bridge.** The renderer exposes `window.qoderDesktop`, including
-   `getCampaignStatus()`, which returns whether a claim is currently available.
-2. **The campaign page.** The claim UI is a web page
-   (`https://openapi.qoder.sh/growth-page/activity-iframe`) rendered as a `WebContentsView`.
-   It appears as a CDP `iframe` target.
+1. **The real UI path.** The script clicks the profile button in the sidebar footer, then
+   **Rewards center** in the menu that opens.
+2. **The campaign page.** That opens
+   `https://openapi.qoder.sh/growth-page/activity-iframe` as an iframe, which shows up as a
+   CDP `iframe` target.
+3. **The claim.** Inside that frame the script finds the **"Claim 100 Credits Daily"** card's
+   enabled **Claim** button and clicks it, then verifies the page says
+   *"Claimed successfully. Credits have been added."*
 
-The script connects to Qoder's DevTools endpoint, asks the app whether anything is claimable,
-opens the campaign surface, clicks the **"Claim 100 Credits Daily"** card's own button, and then
-verifies the result. It runs inside the app's real logged-in session, so no tokens or cookies are
-ever read, stored, or transmitted.
+It runs inside the app's real logged-in session, so no tokens or cookies are ever read, stored,
+or transmitted.
+
+> **Why not the IPC shortcut?** Qoder exposes `openCampaignSurface()` over its IPC bridge, and an
+> earlier version of this project used it. That path leaves the page stuck on
+> *"Connecting to Qoder Desktop…"* forever, because the host bridge is only wired up when the
+> window is opened from the real menu. So the script drives the menu, exactly like a person would.
 
 ```
-getCampaignStatus()  ──►  claimable?  ──no──►  exit 0 (nothing to do)
-                              │yes
-                              ▼
-                     openCampaignSurface()
-                              ▼
-                     find daily card → click Claim
-                              ▼
-                     verify (status + page) → log
+profile button  ──►  "Rewards center"  ──►  campaign iframe
+                                                    │
+                                                    ▼
+                                    find daily card → click Claim
+                                                    ▼
+                                    verify "Claimed successfully" → log
 ```
 
 ## Requirements
@@ -159,8 +163,8 @@ Qoder is not running with the debug port. Run through `scripts/run-claim.ps1` ra
 `node src/qoder-claim.js` directly.
 
 **`campaign surface never rendered`**
-The campaign page failed to load. Open Qoder, go to the Usage panel, and try the gift icon
-manually once to confirm the page loads on your network.
+The campaign window did not open. Open Qoder manually, click your profile name at the bottom of
+the sidebar, choose **Rewards center**, and confirm the window loads on your network.
 
 **`claim control not found`**
 Qoder changed its UI. Open an issue with the output of `claim-log.txt`.
